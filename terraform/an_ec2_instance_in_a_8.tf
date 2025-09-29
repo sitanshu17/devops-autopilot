@@ -1,4 +1,3 @@
-hcl
 provider "aws" {
   region = "ap-south-1"
 }
@@ -7,9 +6,10 @@ resource "aws_vpc" "my_vpc" {
   cidr_block = "10.0.0.0/16"
 }
 
-resource "aws_subnet" "my_subnet" {
-  vpc_id     = aws_vpc.my_vpc.id
-  cidr_block = "10.0.1.0/24"
+resource "aws_subnet" "public_subnet" {
+  vpc_id            = aws_vpc.my_vpc.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "ap-south-1a"
 }
 
 resource "aws_internet_gateway" "my_igw" {
@@ -44,10 +44,8 @@ resource "aws_security_group" "my_security_group" {
 }
 
 resource "aws_instance" "my_instance" {
-  ami           = "ami-0c2b8ca1dad447f8a"
+  ami           = "ami-0c2b8ca1dad447f8a" # Ubuntu 22.04
   instance_type = "t2.micro"
-  subnet_id     = aws_subnet.my_subnet.id
-  vpc_security_group_ids = [aws_security_group.my_security_group.id]
-  key_name      = "my_key_pair"
+  subnet_id     = aws_subnet.public_subnet.id
+  security_groups = [aws_security_group.my_security_group.id]
 }
-```

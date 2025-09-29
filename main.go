@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"devops-autopilot/handlers"
+	"devops-autopilot/routes"
 	"devops-autopilot/utils"
 
 	"github.com/gin-gonic/gin"
@@ -23,12 +23,8 @@ func main() {
 	// Create Gin router
 	r := gin.Default()
 
-	// API routes
-	api := r.Group("/api/provision")
-	{
-		api.GET("/health", handlers.HealthCheck)
-		api.POST("/terraform", handlers.GenerateTerraform)
-	}
+	// Setup all routes
+	routes.SetupRoutes(r)
 
 	// Get port from environment or default to 5000
 	port := os.Getenv("PORT")

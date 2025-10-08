@@ -1,19 +1,25 @@
 # DevOps Autopilot
 
-An intelligent DevOps automation tool that generates Terraform infrastructure code using OpenAI's GPT API. Built with Go for high performance and reliability.
+An intelligent DevOps automation tool that generates Terraform infrastructure code using multiple AI providers. Built with Go for high performance and reliability.
 
 ## 🚀 Features
 
-- **AI-Powered Code Generation**: Uses OpenAI GPT to generate Terraform code based on natural language specifications
+- **Dual AI Providers**: Choose between OpenAI GPT and GitHub Copilot for code generation
+- **Cost-Effective Options**: Free GitHub Models API alongside premium OpenAI
+- **Terraform Validation**: Built-in validation using local Terraform CLI
 - **RESTful API**: Clean HTTP endpoints for integration with other tools
-- **File Management**: Automatically saves generated code with unique filenames
+- **Smart File Management**: Automatically saves generated code with provider prefixes
+- **A/B Testing**: Compare code quality between different AI providers
 - **Robust Error Handling**: Comprehensive error handling and validation
 - **High Performance**: Built with Go for speed and efficiency
 
 ## 📋 Prerequisites
 
 1. **Go 1.18 or higher** - [Download Go](https://golang.org/dl/)
-2. **OpenAI API Key** - Get one from [OpenAI Platform](https://platform.openai.com/api-keys)
+2. **Terraform CLI** - [Download Terraform](https://developer.hashicorp.com/terraform/downloads) (for validation)
+3. **AI Provider Keys** (choose one or both):
+   - **OpenAI API Key** - [Get from OpenAI Platform](https://platform.openai.com/api-keys)
+   - **GitHub Personal Access Token** - [Generate from GitHub Settings](https://github.com/settings/tokens)
 
 ## 🛠️ Setup
 
@@ -23,11 +29,19 @@ An intelligent DevOps automation tool that generates Terraform infrastructure co
    cd devops-autopilot
    ```
 
-2. **Create a `.env` file with your OpenAI API key:**
+2. **Create a `.env` file with your API keys:**
    ```env
+   # Required for OpenAI endpoint
    OPENAI_API_KEY=your_openai_api_key_here
+   
+   # Required for GitHub Copilot endpoint  
+   GITHUB_TOKEN=your_github_personal_access_token_here
+   
+   # Optional
    PORT=5000
    ```
+   
+   **Note**: You can use either one or both API keys depending on which endpoints you want to use.
 
 3. **Install Go dependencies:**
    ```bash
@@ -63,7 +77,7 @@ GET http://localhost:5000/api/provision/health
 }
 ```
 
-### Generate Terraform Code
+### Generate Terraform Code (OpenAI)
 ```http
 POST http://localhost:5000/api/provision/terraform
 Content-Type: application/json
@@ -74,10 +88,37 @@ Content-Type: application/json
 }
 ```
 
-**Response:**
+### Generate Terraform Code (GitHub Copilot)
+```http
+POST http://localhost:5000/api/provision/terraform-copilot
+Content-Type: application/json
+
+{
+  "resource": "EC2 instance", 
+  "specs": "t3.micro instance in us-east-1 with Ubuntu 20.04"
+}
+```
+
+**Response (both endpoints):**
 ```json
 {
   "message": "Terraform code generated successfully",
+  "terraformCode": "resource \"aws_instance\" \"example\" {\n  ami = \"ami-0c55b159cbfafe1d0\"\n  instance_type = \"t3.micro\"\n}",
+  "validation": {
+    "isValid": true,
+    "errors": [],
+    "warnings": [],
+    "execTime": 1250
+  }
+}
+```
+
+### Validate Terraform Code
+```http
+POST http://localhost:5000/api/provision/validate
+Content-Type: application/json
+
+{
   "terraformCode": "resource \"aws_instance\" \"example\" {\n  ami = \"ami-0c55b159cbfafe1d0\"\n  instance_type = \"t3.micro\"\n}"
 }
 ```
@@ -86,17 +127,27 @@ Content-Type: application/json
 
 ```
 devops-autopilot/
-├── main.go                 # Application entry point
-├── go.mod                  # Go module definition
-├── go.sum                  # Go dependencies checksum
+├── main.go                    # Application entry point
+├── go.mod                     # Go module definition
+├── go.sum                     # Go dependencies checksum
 ├── handlers/
-│   └── provision.go        # HTTP handlers (REST controllers)
+│   └── provision.go           # HTTP handlers (REST controllers)
+├── services/
+│   └── terraform_service.go   # Business logic layer
+├── models/
+│   └── requests.go           # Data models and DTOs
+├── routes/
+│   └── provision.go          # API routing configuration
 ├── utils/
-│   └── openai.go          # OpenAI API integration
-├── terraform/             # Generated Terraform files
-├── .env                   # Environment variables (not committed)
-├── .gitignore             # Git ignore rules
-└── README.md              # This file
+│   ├── openai.go            # OpenAI API integration
+│   ├── github.go            # GitHub Models API integration
+│   └── terraform.go         # Terraform CLI validation
+├── tf-generated-files/       # Generated Terraform files
+│   ├── openai_*.tf          # Files generated by OpenAI
+│   └── copilot_*.tf         # Files generated by GitHub Copilot
+├── .env                     # Environment variables (not committed)
+├── .gitignore               # Git ignore rules
+└── README.md                # This file
 ```
 
 ## 🔧 Configuration
@@ -104,12 +155,37 @@ devops-autopilot/
 Create a `.env` file in the project root:
 
 ```env
-# Required
+# OpenAI Configuration (required for /terraform endpoint)
 OPENAI_API_KEY=sk-your-openai-api-key-here
 
-# Optional (defaults shown)
+# GitHub Configuration (required for /terraform-copilot endpoint)
+GITHUB_TOKEN=ghp_your-github-personal-access-token-here
+
+# Server Configuration (optional, defaults shown)
 PORT=5000
 ```
+
+### API Provider Comparison
+
+| Feature | OpenAI API | GitHub Models API |
+|---------|------------|-------------------|
+| **Cost** | Pay-per-use | Free tier available |
+| **Models** | GPT-3.5, GPT-4 | GPT-4o, GPT-4o-mini, Claude |
+| **Quality** | Excellent | Excellent (code-optimized) |
+| **Rate Limits** | Based on plan | Generous free limits |
+| **Setup** | OpenAI API Key | GitHub Personal Access Token |
+
+## 🎯 File Management
+
+Generated Terraform files are automatically saved in `tf-generated-files/` with provider prefixes:
+
+- **OpenAI**: `openai_ec2_instance_1.tf`
+- **GitHub Copilot**: `copilot_ec2_instance_1.tf`
+
+This makes it easy to:
+- Compare outputs from different providers
+- Track which AI generated which code
+- Organize files by AI provider
 
 ## 🚀 Building for Production
 
@@ -137,4 +213,33 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## ⚠️ Security Note
 
-Never commit your `.env` file or expose your OpenAI API key. The `.gitignore` file is configured to exclude sensitive files.
+Never commit your `.env` file or expose your API keys. The `.gitignore` file is configured to exclude sensitive files.
+
+## 🤖 AI Provider Setup
+
+### OpenAI Setup
+1. Visit [OpenAI Platform](https://platform.openai.com/api-keys)
+2. Create a new API key
+3. Add it to your `.env` file as `OPENAI_API_KEY`
+
+### GitHub Models Setup  
+1. Visit [GitHub Settings](https://github.com/settings/tokens)
+2. Generate a new Personal Access Token (classic)
+3. Select scopes: `repo`, `user`, `read:org`
+4. Add it to your `.env` file as `GITHUB_TOKEN`
+
+## 🧪 Testing Both Providers
+
+You can easily A/B test both providers:
+
+```bash
+# Test OpenAI
+curl -X POST http://localhost:5000/api/provision/terraform \
+  -H "Content-Type: application/json" \
+  -d '{"resource": "S3 bucket", "specs": "with versioning enabled"}'
+
+# Test GitHub Copilot  
+curl -X POST http://localhost:5000/api/provision/terraform-copilot \
+  -H "Content-Type: application/json" \
+  -d '{"resource": "S3 bucket", "specs": "with versioning enabled"}'
+```

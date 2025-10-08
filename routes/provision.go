@@ -11,8 +11,11 @@ func SetupProvisionRoutes(router *gin.RouterGroup) {
 	// Health check endpoint
 	router.GET("/health", handlers.HealthCheck)
 	
-	// Terraform generation endpoint
+	// Terraform generation endpoint (OpenAI)
 	router.POST("/terraform", handlers.GenerateTerraform)
+	
+	// Terraform generation endpoint (GitHub Copilot)
+	router.POST("/terraform-copilot", handlers.GenerateTerraformWithCopilot)
 	
 	// Terraform validation endpoint  
 	router.POST("/validate", handlers.ValidateTerraform)

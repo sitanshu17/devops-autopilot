@@ -20,6 +20,9 @@ func main() {
 	// Initialize OpenAI client
 	utils.InitOpenAI()
 
+	// Initialize GitHub client
+	utils.InitGitHub()
+
 	// Create Gin router
 	r := gin.Default()
 

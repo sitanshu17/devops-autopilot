@@ -13,10 +13,47 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Job 1: Code Quality and Testing
+  # Job 1: Auto-format code
+  format:
+    name: Auto-format Go Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Format Go code
+        run: gofmt -w .
+
+      - name: Check for changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit formatted code
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Auto-format Go code [skip ci]"
+          git push
+
+  # Job 2: Code Quality and Testing
   quality-check:
     name: Code Quality Check
     runs-on: ubuntu-latest
+    needs: format  # Run after formatting
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

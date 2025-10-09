@@ -108,19 +108,19 @@ func (s *TerraformService) CleanTerraformCode(code string) (string, error) {
 		return "", fmt.Errorf("failed to compile regex pattern: %w", err)
 	}
 	cleaned := re1.ReplaceAllString(code, "")
-	
+
 	// Remove ``` at the end
 	re2, err := regexp.Compile("```$")
 	if err != nil {
 		return "", fmt.Errorf("failed to compile end regex pattern: %w", err)
 	}
 	cleaned = re2.ReplaceAllString(cleaned, "")
-	
+
 	result := strings.TrimSpace(cleaned)
 	if result == "" {
 		return "", fmt.Errorf("cleaned code is empty after processing")
 	}
-	
+
 	return result, nil
 }
 
@@ -141,7 +141,7 @@ func (s *TerraformService) GetNextAvailableFilename(dir, resourceText, provider,
 	if len(words) > 5 {
 		words = words[:5]
 	}
-	
+
 	baseName := strings.Join(words, "_")
 	// Remove non-alphanumeric characters except underscores
 	re, err := regexp.Compile(`[^a-zA-Z0-9_]`)
@@ -150,7 +150,7 @@ func (s *TerraformService) GetNextAvailableFilename(dir, resourceText, provider,
 	}
 	baseName = re.ReplaceAllString(baseName, "")
 	baseName = strings.ToLower(baseName)
-	
+
 	if baseName == "" {
 		baseName = "generated"
 	}
@@ -163,11 +163,11 @@ func (s *TerraformService) GetNextAvailableFilename(dir, resourceText, provider,
 	for index := 1; index <= maxAttempts; index++ {
 		fileName := fmt.Sprintf("%s_%d%s", baseNameWithProvider, index, ext)
 		filePath := filepath.Join(dir, fileName)
-		
+
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
 			return filePath, nil
 		}
 	}
-	
+
 	return "", fmt.Errorf("failed to find available filename after %d attempts", maxAttempts)
 }

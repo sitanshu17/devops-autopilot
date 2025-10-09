@@ -23,7 +23,7 @@ func HealthCheck(c *gin.Context) {
 // ValidateTerraform handles terraform code validation
 func ValidateTerraform(c *gin.Context) {
 	var req models.ValidationRequest
-	
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "Invalid request format",
@@ -65,7 +65,7 @@ func ValidateTerraform(c *gin.Context) {
 // GenerateTerraform handles terraform code generation
 func GenerateTerraform(c *gin.Context) {
 	var req models.TerraformRequest
-	
+
 	// Validate JSON input
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -87,7 +87,7 @@ func GenerateTerraform(c *gin.Context) {
 	cleanedCode, validation, err := terraformService.GenerateAndValidate(req.Resource, req.Specs)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
+			"error": err.Error(),
 		})
 		return
 	}
@@ -107,7 +107,7 @@ func GenerateTerraform(c *gin.Context) {
 	// Determine response status and message based on validation
 	statusCode := http.StatusOK
 	message := "Terraform code generated successfully"
-	
+
 	if !validation.IsValid {
 		statusCode = http.StatusCreated // 201 - generated but has validation errors
 		message = "Terraform code generated with validation errors"
@@ -124,7 +124,7 @@ func GenerateTerraform(c *gin.Context) {
 // GenerateTerraformWithCopilot handles terraform code generation using GitHub Copilot
 func GenerateTerraformWithCopilot(c *gin.Context) {
 	var req models.TerraformRequest
-	
+
 	// Validate JSON input
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -146,7 +146,7 @@ func GenerateTerraformWithCopilot(c *gin.Context) {
 	cleanedCode, validation, err := terraformService.GenerateAndValidateWithCopilot(req.Resource, req.Specs)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
+			"error": err.Error(),
 		})
 		return
 	}
@@ -166,7 +166,7 @@ func GenerateTerraformWithCopilot(c *gin.Context) {
 	// Determine response status and message based on validation
 	statusCode := http.StatusOK
 	message := "Terraform code generated successfully using GitHub Copilot"
-	
+
 	if !validation.IsValid {
 		statusCode = http.StatusCreated // 201 - generated but has validation errors
 		message = "Terraform code generated using GitHub Copilot with validation errors"
@@ -179,5 +179,3 @@ func GenerateTerraformWithCopilot(c *gin.Context) {
 		Validation:    validation,
 	})
 }
-
-

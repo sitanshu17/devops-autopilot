@@ -19,7 +19,7 @@ func InitOpenAI() {
 	if apiKey == "" {
 		log.Fatal("OPENAI_API_KEY environment variable is not set")
 	}
-	
+
 	openaiClient = openai.NewClient(apiKey)
 	log.Println("OpenAI client initialized successfully")
 }
@@ -30,17 +30,17 @@ func GenerateTerraformCode(resource, specs string) (string, error) {
 	if openaiClient == nil {
 		return "", fmt.Errorf("OpenAI client not initialized")
 	}
-	
+
 	if strings.TrimSpace(resource) == "" {
 		return "", fmt.Errorf("resource cannot be empty")
 	}
-	
+
 	if strings.TrimSpace(specs) == "" {
 		return "", fmt.Errorf("specs cannot be empty")
 	}
 
 	log.Printf("Generating Terraform code for resource: %s with specs: %s", resource, specs)
-	
+
 	prompt := fmt.Sprintf(`
 You are a Terraform expert. Generate Terraform code to provision the following:
 

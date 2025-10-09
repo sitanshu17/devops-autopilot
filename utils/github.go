@@ -44,14 +44,14 @@ func InitGitHub() {
 	githubClient = &http.Client{
 		Timeout: 30 * time.Second,
 	}
-	
+
 	// Validate GitHub token exists
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {
 		log.Println("Warning: GITHUB_TOKEN environment variable is not set - GitHub Copilot API will not work")
 		return
 	}
-	
+
 	log.Println("GitHub client initialized successfully")
 }
 
@@ -61,22 +61,22 @@ func GenerateTerraformCodeWithCopilot(resource, specs string) (string, error) {
 	if githubClient == nil {
 		return "", fmt.Errorf("GitHub client not initialized")
 	}
-	
+
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {
 		return "", fmt.Errorf("GITHUB_TOKEN environment variable is not set")
 	}
-	
+
 	if strings.TrimSpace(resource) == "" {
 		return "", fmt.Errorf("resource cannot be empty")
 	}
-	
+
 	if strings.TrimSpace(specs) == "" {
 		return "", fmt.Errorf("specs cannot be empty")
 	}
 
 	log.Printf("Generating Terraform code using GitHub Copilot for resource: %s with specs: %s", resource, specs)
-	
+
 	prompt := fmt.Sprintf(`You are a Terraform expert. Generate Terraform code to provision the following:
 
 Resource: %s

@@ -13,22 +13,22 @@ import (
 
 // TerraformValidationResult holds the result of terraform validation
 type TerraformValidationResult struct {
-	IsValid   bool     `json:"isValid"`
-	Errors    []string `json:"errors,omitempty"`
-	Warnings  []string `json:"warnings,omitempty"`
-	Output    string   `json:"output,omitempty"`
-	ExecTime  int64    `json:"execTime"` // milliseconds
+	IsValid  bool     `json:"isValid"`
+	Errors   []string `json:"errors,omitempty"`
+	Warnings []string `json:"warnings,omitempty"`
+	Output   string   `json:"output,omitempty"`
+	ExecTime int64    `json:"execTime"` // milliseconds
 }
 
 // ValidateTerraformCode validates terraform code using local terraform CLI
 func ValidateTerraformCode(terraformCode string) (*TerraformValidationResult, error) {
 	startTime := time.Now()
-	
+
 	// Check if terraform CLI is available
 	if !isTerraformInstalled() {
 		return &TerraformValidationResult{
-			IsValid: false,
-			Errors:  []string{"Terraform CLI is not installed or not available in PATH"},
+			IsValid:  false,
+			Errors:   []string{"Terraform CLI is not installed or not available in PATH"},
 			ExecTime: time.Since(startTime).Milliseconds(),
 		}, nil
 	}
@@ -44,9 +44,9 @@ func ValidateTerraformCode(terraformCode string) (*TerraformValidationResult, er
 	initResult, err := runTerraformInit(tempDir)
 	if err != nil {
 		return &TerraformValidationResult{
-			IsValid: false,
-			Errors:  []string{fmt.Sprintf("Terraform init failed: %s", err.Error())},
-			Output:  initResult,
+			IsValid:  false,
+			Errors:   []string{fmt.Sprintf("Terraform init failed: %s", err.Error())},
+			Output:   initResult,
 			ExecTime: time.Since(startTime).Milliseconds(),
 		}, nil
 	}
@@ -59,9 +59,9 @@ func ValidateTerraformCode(terraformCode string) (*TerraformValidationResult, er
 		// Parse terraform validation errors from the actual output
 		errors := parseTerraformErrors(validateResult)
 		return &TerraformValidationResult{
-			IsValid: false,
-			Errors:  errors,
-			Output:  validateResult,
+			IsValid:  false,
+			Errors:   errors,
+			Output:   validateResult,
 			ExecTime: execTime,
 		}, nil
 	}
@@ -102,14 +102,14 @@ func createTempTerraformDir(terraformCode string) (string, error) {
 func runTerraformInit(dir string) (string, error) {
 	cmd := exec.Command("terraform", "init", "-no-color")
 	cmd.Dir = dir
-	
+
 	output, err := cmd.CombinedOutput()
 	outputStr := string(output)
-	
+
 	if err != nil {
 		return outputStr, fmt.Errorf("terraform init failed: %w", err)
 	}
-	
+
 	return outputStr, nil
 }
 
@@ -117,21 +117,21 @@ func runTerraformInit(dir string) (string, error) {
 func runTerraformValidate(dir string) (string, error) {
 	cmd := exec.Command("terraform", "validate", "-no-color", "-json")
 	cmd.Dir = dir
-	
+
 	output, err := cmd.CombinedOutput()
 	outputStr := string(output)
-	
+
 	if err != nil {
 		return outputStr, fmt.Errorf("terraform validate failed: %w", err)
 	}
-	
+
 	return outputStr, nil
 }
 
 // parseTerraformErrors extracts error messages from terraform output
 func parseTerraformErrors(output string) []string {
 	var errors []string
-	
+
 	// Try to parse JSON output first (terraform validate -json)
 	if strings.Contains(output, `"valid": false`) {
 		errors = parseJSONErrors(output)
@@ -139,7 +139,7 @@ func parseTerraformErrors(output string) []string {
 			return errors
 		}
 	}
-	
+
 	// Fallback to line-by-line parsing
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
@@ -148,11 +148,11 @@ func parseTerraformErrors(output string) []string {
 			errors = append(errors, line)
 		}
 	}
-	
+
 	if len(errors) == 0 {
 		errors = []string{output}
 	}
-	
+
 	return errors
 }
 
@@ -181,29 +181,29 @@ type TerraformValidateOutput struct {
 func parseJSONErrors(jsonOutput string) []string {
 	var errors []string
 	var validateOutput TerraformValidateOutput
-	
+
 	// Try to parse the JSON
 	if err := json.Unmarshal([]byte(jsonOutput), &validateOutput); err != nil {
 		// If JSON parsing fails, fall back to simple string extraction
 		return []string{fmt.Sprintf("Failed to parse validation output: %s", jsonOutput)}
 	}
-	
+
 	// Extract meaningful error messages
 	for _, diagnostic := range validateOutput.Diagnostics {
 		if diagnostic.Severity == "error" {
-			errorMsg := fmt.Sprintf("Line %d: %s - %s", 
-				diagnostic.Range.Start.Line, 
-				diagnostic.Summary, 
+			errorMsg := fmt.Sprintf("Line %d: %s - %s",
+				diagnostic.Range.Start.Line,
+				diagnostic.Summary,
 				diagnostic.Detail)
 			errors = append(errors, errorMsg)
 		}
 	}
-	
+
 	// If no errors found in diagnostics but validation failed, show generic error
 	if len(errors) == 0 && !validateOutput.Valid {
 		errors = []string{fmt.Sprintf("Validation failed with %d errors", validateOutput.ErrorCount)}
 	}
-	
+
 	return errors
 }
 

@@ -1,0 +1,75 @@
+# Git and version control
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+LICENSE
+*.md
+
+# Development files
+.env
+.env.local
+.env.example
+
+# Build artifacts
+devops-autopilot
+devops-autopilot.exe
+*.exe
+*.so
+*.dylib
+
+# Test files
+*_test.go
+testdata/
+
+# CI/CD files
+.github/
+.gitlab-ci.yml
+Jenkinsfile
+azure-pipelines.yml
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Node.js (if any frontend components)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Generated Terraform files (not needed in container)
+tf-generated-files/
+terraform/
+*.tf
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# Coverage reports
+coverage.txt
+coverage.html
+*.out
